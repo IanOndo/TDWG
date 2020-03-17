@@ -1,0 +1,23 @@
+Package: TDWG
+Title: Geographic Cleaning of Occurrence Records Using Taxonomic Databases for Plant Sciences
+Version: 0.0.0.9000
+Authors@R:person("Ian", "Ondo", email = "iondo@kew.org", role = c("aut", "cre"))
+Description: This package contains multiple functions to select plant species and/or spatially filter occurrence records.
+             It combines botanical information about ten of thousands of plant species from the Kew world checklist database with geographical information
+             derived from The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.
+License: What license it uses
+Encoding: UTF-8
+LazyData: true
+ByteCompile: true
+Imports: 
+    rgdal,
+    raster,
+    geosphere,
+    parallel,
+    doParallel,
+    geojsonio,
+    foreach
+RoxygenNote: 6.1.1
+Depends: 
+    data.table,
+    stringr
