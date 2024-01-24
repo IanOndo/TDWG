@@ -2,10 +2,9 @@
 % Please edit documentation in R/queryDistribution.R
 \name{queryDistributionId}
 \alias{queryDistributionId}
-\title{Functions to get the IPNI id of a plant species using the Plant Of the Workd Online (POWO) API.}
+\title{Functions to get the IPNI id of a plant species using the Plant Of the World Online (POWO) API.}
 \usage{
-queryDistributionId(binomial, status = "natives", use_acc_name = TRUE,
-  ...)
+queryDistributionId(binomial, status = "natives", use_acc_name = TRUE, ...)
 }
 \arguments{
 \item{binomial}{A two character string (Genus species) specifying the name of the species to search for.}

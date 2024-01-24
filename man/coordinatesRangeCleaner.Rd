@@ -4,9 +4,18 @@
 \alias{coordinatesRangeCleaner}
 \title{Functions to filter occurrences based on a system of geographical units developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.}
 \usage{
-coordinatesRangeCleaner(point_data, species_name, species_id = NULL,
-  status = "both", initial_level = 2, force.output = FALSE,
-  sp = FALSE, verbose = TRUE, ...)
+coordinatesRangeCleaner(
+  point_data,
+  species_name,
+  species_id = NULL,
+  status = "both",
+  initial_level = 2,
+  backbone = "wcvp",
+  force.output = FALSE,
+  sf = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{point_data}{A two-column data.frame of occurrence records coordinates.}
@@ -17,14 +26,14 @@ coordinatesRangeCleaner(point_data, species_name, species_id = NULL,
 
 \item{initial_level}{A numeric integer between 1 and 4. The initial unit level of the TWDG at which the data must be checked against. Default initial level is 2.}
 
-\item{force.output}{A logical. Should the initial point dataset be returned in case where all points have been removed by the cleaning ? Default is FALSE.}
+\item{force.output}{A logical. Should the initial point dataset be returned in case all points have been removed by the cleaning ? Default is FALSE.}
 
-\item{sp}{A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}}
+\item{sf}{A logical. Should the results be returned as a sf object ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}}
 
 \item{...}{Additional parameters to be passed to \code{TDWGinfo()}}
 }
 \value{
-A two-column data.frame or a SpatialPointsDataFrame object with point coordinates cleaned by the species geographic range defined by the TDWG and according to specified criteria.
+A two-column data.frame or a sf object with point coordinates cleaned by the species geographic range defined by the TDWG and according to specified criteria.
 }
 \description{
 Clean the species occurrence locations not occurring within a given range.

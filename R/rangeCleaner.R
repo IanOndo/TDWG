@@ -12,7 +12,7 @@
 #' @param by_id A logical. Should the criteria be applied to each geographical units ? Default is FALSE. Ignored if \code{what='occurrences'}
 #' @param recursive A logical. Should the criteria be also applied at the subsequent lower units level ? Default is FALSE. Ignored if \code{what='occurrences'}
 #' @param force.output A logical. Should the initial point dataset be returned in case where all points have been removed by the cleaning ? Default is FALSE.
-#' @param sp A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is FALSE. Ignored if \code{cleanOcc=FALSE}
+#' @param sf A logical. Should the results be returned as a sf object ? Default is FALSE. Ignored if \code{cleanOcc=FALSE}
 #' @param fileAsNames A logical. Should species name be retrieved from file names ? Default is FALSE. Ignored if point_data is a path to a directory.
 #' @param do.parallel A logical. Should computations be run in parallel. Default is FALSE.
 #' @param ncores A numeric integer specifying the number of cores to use in parallel processing. Ignored if \code{do.parallel=FALSE}.
@@ -43,10 +43,12 @@ rangeCleaner <- function(point_data,
                          working_dir = NULL,
                          species_name = NULL,
                          species_id = NULL,
+                         col_species = NULL,
                          status = 'both',
                          initial_level = 2,
+                         backbone='wcvp',
                          force.output = FALSE,
-                         sp = FALSE,
+                         sf = FALSE,
                          fileAsNames = FALSE,
                          do.parallel = FALSE,
                          ncores = NULL,
@@ -119,7 +121,7 @@ rangeCleaner <- function(point_data,
       list.species <- gsub("\\.csv","",basename(point_data))
   }
   else if(data_flag){
-    id_sp_name	<- grep(pattern = "^[Ss][Pp]|[Bb][Ii][Nn][Oo][Mm]",x = names(point_data))[1]
+    id_sp_name	<- ifelse(!is.null(col_species) && (col_species > 0 & col_species <= ncol(point_data)), col_species, grep(pattern = "^[Ss][Pp]|[Bb][Ii][Nn][Oo][Mm]",x = names(point_data))[1])
     if(length(id_sp_name)==0L)
       stop("Unable to find a species name for the species name column. Please add a valid species name column to your data.")
     sp.colname <- colnames(point_data)[id_sp_name]
@@ -152,7 +154,7 @@ rangeCleaner <- function(point_data,
     cat("#---------------------------------\n")
   }
   call.fun 	<- match.call(expand.dots=TRUE)
-  tmp.args    <- c('species_name','species_id','status','point_fraction', 'unit_fraction','range_filling','grid_resol','initial_level','by_id','which_skip','recursive','force.output','verbose','use_name_matching','proj_utm','full_data')
+  tmp.args    <- c('species_name','species_id','status','point_fraction', 'unit_fraction','range_filling','grid_resol','initial_level','backbone','by_id','which_skip','recursive','force.output','verbose','use_name_matching','proj_utm','full_data')
   call.tmp    <- call.fun[match(tmp.args, names(call.fun),nomatch=0)]
   cleaner		<- switch(what, 'species' = "speciesRangeCleaner", 'occurrences'="coordinatesRangeCleaner")
   cleaner.args<- as.list(call.tmp)
@@ -232,30 +234,30 @@ rangeCleaner <- function(point_data,
 
     started.at <- Sys.time()
 
-      out <- foreach::foreach(k = list.species, .packages = c("TDWG","geosphere", "rgdal", "geojsonio","stringr", "raster", "parallel", "foreach","data.table"), .export=toExport) %dopar% {
+      out <- foreach::foreach(k = list.species, .packages = c("TDWG","geosphere", "rgdal", "geojsonio","stringr", "raster", "parallel", "foreach","data.table"), .export=toExport, .errorhandling = 'pass') %dopar% {
 
         # Get data for just that species
         if(file.exists(k)){
           species.data <- tryCatch(data.table::fread(k, showProgress=FALSE),error=function(err) return(NULL))
-          k = gsub("\\.csv|_","",basename(k))
+          k = stringr::str_replace_all(basename(k),c(".csv"="","_"=" "))
         }else if(exists('occ_data')){
           species.data 	<- tryCatch({
             occ_data[k]
           },
           error = function(err) {
-            return(NULL)
+            tryCatch(occ_data[J(k)],error = function(err) return(NULL))
           })
         }else{
           species.data 	<- tryCatch({
             point_data[k]
           },
           error = function(err) {
-            return(NULL)
+            tryCatch(point_data[J(k)],error = function(err) return(NULL))
           })
         }
         # if an error occurred during the reading returns an NULL
         if (is.null(species.data) || ncol(species.data) < 2){
-          if(verbose) warning(paste0("Cannot read file from species",k))
+          if(verbose) warning(paste0("Cannot read file from species ",k))
           if(save.outputs & cleaner == "coordinatesRangeCleaner"){
             dn <- file.path(working_dir,"problems")
             if(!dir.exists(dn))
@@ -287,8 +289,12 @@ rangeCleaner <- function(point_data,
         if(verbose) cat(sprintf("Species name: %s\n\n", k));flush.console()
         cleaner.args[['point_data']] 	<- species.data
         cleaner.args[['species_name']]	<- k
-        if(use_sp_id)
-          cleaner.args[['species_id']]	<- cleaner.args$species_id[k]
+        if(use_sp_id){
+          species_id <- eval(cleaner.args$species_id,parent.frame())
+          if(length(species_id)>1L)
+            species_id <- species_id[k]
+          cleaner.args[['species_id']]	<- species_id
+        }
         #if(is.null(cleaner.args[['species_name']]))  cleaner.args[['species_name']]	<- k
         res = do.call(cleaner, cleaner.args)
         if(cleaner=="coordinatesRangeCleaner"){
@@ -320,9 +326,9 @@ rangeCleaner <- function(point_data,
 
   if(cleaner=="speciesRangeCleaner"){
     out <- do.call('c', out)
-    out <- setNames(out,gsub("\\.csv|_","",basename(list.species)))
+    out <- setNames(out,gsub("\\.csv","",basename(list.species)))
     return(out)
   }
-  out <- setNames(out,gsub("\\.csv|_","",basename(list.species)))
+  out <- setNames(out,gsub("\\.csv","",basename(list.species)))
   return(out)
 }

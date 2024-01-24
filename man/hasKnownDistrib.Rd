@@ -5,11 +5,23 @@
 \title{Functions to filter/select species/occurrences based on a system of geographical units
 developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.}
 \usage{
-hasKnownDistrib(point_data, species_name, species_id = NULL,
-  point_fraction = 0.5, unit_fraction = NULL, range_filling = NULL,
-  grid_resol = 10000, initial_level = 2, by_id = FALSE,
-  recursive = FALSE, cleanOcc = FALSE, sp = FALSE, verbose = TRUE,
-  ...)
+hasKnownDistrib(
+  point_data,
+  species_name,
+  species_id = NULL,
+  point_fraction = 0.5,
+  unit_fraction = NULL,
+  range_filling = NULL,
+  grid_resol = 10000,
+  initial_level = 2,
+  backbone = "wcvp",
+  by_id = FALSE,
+  recursive = FALSE,
+  cleanOcc = FALSE,
+  sf = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{point_data}{A two-column data.frame of occurrence records coordinates.}
@@ -35,7 +47,7 @@ Must be given in m. Default is 10000 i.e. 10 km}
 
 \item{cleanOcc}{A logical. Should the dataset of cleaned occurrence records be returned also ? Default is FALSE.}
 
-\item{sp}{A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}}
+\item{sf}{A logical. Should the results be returned as a sf object ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}}
 
 \item{...}{Additional parameters to be passed to \code{TDWGinfo()}}
 }

@@ -4,9 +4,17 @@
 \alias{get_geocode}
 \title{Functions to get the geographical unit codes of the TDWG regions the species belong to.}
 \usage{
-get_geocode(species_name = NULL, species_id = NULL,
-  status = "native", level = 2, use_name_matching = FALSE,
-  exclude = NULL, time_delay = 3)
+get_geocode(
+  species_name = NULL,
+  species_id = NULL,
+  status = "native",
+  level = 2,
+  use_name_matching = FALSE,
+  exclude_doubtful = TRUE,
+  exclude = NULL,
+  backbone = "wcvp",
+  time_delay = 3
+)
 }
 \arguments{
 \item{species_name}{A two character string (Genus species) specifying the name of the species to search for.}
@@ -18,6 +26,8 @@ get_geocode(species_name = NULL, species_id = NULL,
 \item{level}{A numeric integer between 1 and 4. The geographic level of the TWDG at which the code must be extracted from. Default is level 2.}
 
 \item{use_name_matching}{A logical. Should the species names be matched with the Kew checklist (i.e. try to guess actual accepted name) ? Default is FALSE.}
+
+\item{exclude_doubtful}{Optional. A logical. Should the regions flagged as 'doubtful' be excluded from the search ? Default is TRUE.}
 
 \item{exclude}{Optional. A character string or a vector of names specifying the geographic region(s) to exclude from the search.
 Can be : "NORTHERN AMERICA","SOUTHERN AMERICA", "ANTARCTICA", "EUROPE", "AFRICA", "AUSTRALASIA","ASIA-TEMPERATE", "ASIA-TROPICAL" or "PACIFIC"}

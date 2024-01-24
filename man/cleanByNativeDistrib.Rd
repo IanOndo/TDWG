@@ -4,9 +4,17 @@
 \alias{cleanByNativeDistrib}
 \title{Functions to filter occurrences based on a system of geographical units developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.}
 \usage{
-cleanByNativeDistrib(point_data, species_name, species_id = NULL,
-  initial_level = 2, force.output = FALSE, sp = FALSE,
-  verbose = TRUE, ...)
+cleanByNativeDistrib(
+  point_data,
+  species_name,
+  species_id = NULL,
+  initial_level = 2,
+  backbone = "wcvp",
+  force.output = FALSE,
+  sf = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{point_data}{A two-column data.frame of occurrence records coordinates.}
@@ -19,12 +27,12 @@ cleanByNativeDistrib(point_data, species_name, species_id = NULL,
 
 \item{force.output}{A logical. Should the initial point dataset be returned in case where all points have been removed by the cleaning ? Default is FALSE.}
 
-\item{sp}{A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is FALSE.}
+\item{sf}{A logical. Should the results be returned as a sf object ? Default is FALSE.}
 
 \item{...}{Additional parameters to be passed to \code{TDWGinfo()}}
 }
 \value{
-A two-column data.frame or a SpatialPointsDataFrame object with point coordinates cleaned by the species native geographic range defined by the TDWG and according to specified criteria.
+A two-column data.frame or a sf object with point coordinates cleaned by the species native geographic range defined by the TDWG and according to specified criteria.
 }
 \description{
 Clean the species occurrence locations not occurring within its native range.

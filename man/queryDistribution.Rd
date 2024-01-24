@@ -4,8 +4,14 @@
 \alias{queryDistribution}
 \title{Functions to get the geographic distribution information of a plant species using the Plant Of the World Online (POWO) API.}
 \usage{
-queryDistribution(binomial, ipni_id = NULL, status = "natives",
-  verbose = TRUE, use_acc_name = TRUE, ...)
+queryDistribution(
+  binomial,
+  ipni_id = NULL,
+  status = "natives",
+  verbose = TRUE,
+  use_acc_name = TRUE,
+  ...
+)
 }
 \arguments{
 \item{binomial}{A two character string (Genus species) specifying the name of the species to search for.}

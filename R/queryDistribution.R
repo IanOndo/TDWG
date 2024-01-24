@@ -85,7 +85,7 @@ queryDistribution <- function(binomial, ipni_id = NULL, status='natives', verbos
 }
 
 
-#' Functions to get the IPNI id of a plant species using the Plant Of the Workd Online (POWO) API.
+#' Functions to get the IPNI id of a plant species using the Plant Of the World Online (POWO) API.
 #'
 #' Get the IPNI id of a species with geographic distribution information.
 #'
@@ -98,7 +98,6 @@ queryDistributionId <- function(binomial, status='natives', use_acc_name=TRUE,..
   # Set the API link
 
   POWO_API = 'http://www.plantsoftheworldonline.org/api/2'
-
 
   # Look up the IPNI id
 
@@ -113,6 +112,8 @@ queryDistributionId <- function(binomial, status='natives', use_acc_name=TRUE,..
   # Parse them
 
   results <- try(jsonlite::parse_json(powo.json,simplifyVector = TRUE)$results, silent = TRUE)
+  
+  if(inherits(results,'try-error')) return(NULL)
 
   acc_idx = if(use_acc_name) results$accepted else rep(TRUE, times=length(results$accepted))
 

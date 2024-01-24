@@ -5,12 +5,26 @@
 \title{Functions developed to filter/select species/occurrences based on a system of geographical units
 developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.}
 \usage{
-TDWGinfo(point_data, species_name, species_id = NULL,
-  grid_resol = 10000, status = "both", use_name_matching = FALSE,
-  initial_level = 2, by_id = FALSE, which_skip = 3,
-  recursive = FALSE, sp = TRUE,
-  proj_utm = "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
-  full_data = FALSE, verbose = FALSE, ...)
+TDWGinfo(
+  point_data,
+  species_name,
+  species_id = NULL,
+  grid_resol = 10000,
+  status = "both",
+  use_name_matching = FALSE,
+  initial_level = 2,
+  backbone = "wcvp",
+  by_id = FALSE,
+  which_skip = 3,
+  recursive = FALSE,
+  sf = TRUE,
+  proj_utm =
+    "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+  full_data = FALSE,
+  force = FALSE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{point_data}{A two-column data.frame of occurrence records coordinates.}
@@ -33,14 +47,16 @@ Set to \code{2} to skip the computation of the proportion of tdwg units sampled;
 
 \item{recursive}{A logical. Should the criteria be also applied at the subsequent lower units level ? Default is FALSE.}
 
-\item{sp}{A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is TRUE.}
+\item{sf}{A logical. Should the results be returned as a sf object ? Default is TRUE.}
 
 \item{proj_utm}{A character string specifying the projection of the raster grid to be used when calculating the percent coverage of geographical units by point distribution.}
 
 \item{full_data}{A logical. Should the initial cleaned dataset be returned ? or the cleaned records only ? Default is FALSE i.e. only cleaned records are returned.}
+
+\item{A}{logical. Should the info be re-computed ? Default is FALSE.}
 }
 \value{
-A SpatialPointsDataFrame object if \code{sp=TRUE}, a list object otherwise.
+A sf object if \code{sf=TRUE}, a list object otherwise.
 }
 \description{
 Generates a list of parameters that can be used to filter species and/or occurrence locations based on geographic units recording the native range of species

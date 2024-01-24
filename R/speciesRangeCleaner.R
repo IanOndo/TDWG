@@ -14,7 +14,7 @@
 #' @param initial_level A numeric integer between 1 and 4. The initial unit level of the TWDG at which the data must be checked against. Default initial level is 2.
 #' @param by_id A logical. Should the criteria be applied to each geographical units ? Default is FALSE. Not implemented yet.
 #' @param recursive A logical. Should the criteria be also applied at the subsequent lower units level ? Default is FALSE.
-#' @param sp A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}
+#' @param sf A logical. Should the results be returned as a sf object ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}
 #' @param ... Additional parameters to be passed to \code{TDWGinfo()}
 #' @return By default the function returns a logical:
 #'         TRUE if the distribution of species occurrences match the \code{status} range required, given the criteria.
@@ -30,13 +30,14 @@ speciesRangeCleaner <- function(point_data,
                                 range_filling = NULL,
                                 grid_resol = 10000,
                                 initial_level = 2,
+                                backbone='wcvp',
                                 by_id = FALSE,
                                 recursive = FALSE,
-                                sp = FALSE,
+                                sf = FALSE,
                                 verbose = TRUE,...){
 
   call.fun 	<- match.call(expand.dots=TRUE)
-  tmp.args    <- c("",'point_data','species_name','species_id','status','point_fraction', 'unit_fraction','range_filling','grid_resol','initial_level','by_id','recursive','verbose','use_name_matching','full_data')
+  tmp.args    <- c("",'point_data','species_name','species_id','status','point_fraction', 'unit_fraction','range_filling','grid_resol','initial_level','backbone','by_id','recursive','verbose','use_name_matching','full_data')
   call.tmp    <- call.fun[match(tmp.args, names(call.fun),nomatch=0)]
   call.tmp$cleanOcc <- FALSE
   call.tmp$verbose <- FALSE

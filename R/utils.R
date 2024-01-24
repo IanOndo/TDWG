@@ -3,8 +3,8 @@ setup_point_data <- function(point_data, full_data=FALSE){
   #--------------------------------------
   #= 1. Retrieve coordinates
   #--------------------------------------
-  id_x_lon 	<- grep(pattern = "[Ll][Oo][Nn]",x = names(point_data))[1]
-  id_y_lat 	<- grep(pattern = "[Ll][Aa][Tt]",x = names(point_data))[1]
+  id_x_lon 	<- grep(pattern = "[Ll][Oo][Nn]|^[Xx]$",x = names(point_data))[1]
+  id_y_lat 	<- grep(pattern = "[Ll][Aa][Tt]|^[Yy]$",x = names(point_data))[1]
   coordHeaders <- c(id_x_lon, id_y_lat)
 
   #--------------------------------------
@@ -17,7 +17,11 @@ setup_point_data <- function(point_data, full_data=FALSE){
   #= 3. Clean coordinates
   #--------------------------------------
   NA_to_remove <- !complete.cases(point_data[, coordHeaders]) # find NA's
-  Dup_to_remove <- duplicated(point_data[, coordHeaders]) # find duplicates
+  # find duplicates
+  if(!full_data)
+    Dup_to_remove <- duplicated(point_data[, coordHeaders]) 
+  else
+    Dup_to_remove <- duplicated(point_data)
   Rows_to_remove <- NA_to_remove | Dup_to_remove
   point_data.cleaned	<- point_data[!Rows_to_remove, ] # remove Na's and duplicates
 
@@ -28,8 +32,9 @@ setup_point_data <- function(point_data, full_data=FALSE){
 }
 
 #' @export
-hasDistrib <- function(species_name, checklist=NULL, use_name_matching=FALSE, verbose=TRUE) sapply(species_name, .hasdistrib, checklist=checklist, use_name_matching=use_name_matching, verbose=verbose, USE.NAMES=TRUE)
-.hasdistrib <- function(species_name, checklist=NULL, use_name_matching=FALSE, verbose=TRUE){
+hasDistrib <- function(species_name, backbone='wcvp', use_name_matching=FALSE, verbose=TRUE) sapply(species_name, .hasdistrib, backbonet=backbone, use_name_matching=use_name_matching, verbose=verbose, USE.NAMES=TRUE)
+
+.hasdistrib <- function(species_name, backbone='wcvp', use_name_matching=FALSE, verbose=TRUE){
 
   if(missing(species_name))
     stop("Argument 'species_name' is missing")
@@ -41,15 +46,27 @@ hasDistrib <- function(species_name, checklist=NULL, use_name_matching=FALSE, ve
   #----------------------------------------------
   #= Get distribution info from the checklist
   #----------------------------------------------
-  if(!exists('kew_checklist',envir=.GlobalEnv)){
-    if(is.null(checklist) || !file.exists(checklist))
-      stop(paste0("Unable to locate file: ",checklist,". Please provide a valid path to Kew checklist file."))
-    kew_checklist <<- data.table::fread(checklist, key=if(use_name_matching) "full_name_without_family" else "acc_full_name_without_family",showProgress=FALSE)
+  # if(!exists('kew_checklist',envir=.GlobalEnv)){
+  #   if(is.null(checklist) || !file.exists(checklist))
+  #     stop(paste0("Unable to locate file: ",checklist,". Please provide a valid path to Kew checklist file."))
+  #   kew_checklist <<- data.table::fread(checklist, key=if(use_name_matching) "full_name_without_family" else "acc_full_name_without_family",showProgress=FALSE)
+  # }else{
+  #   if(use_name_matching && key(kew_checklist)!="full_name_without_family") setkey(kew_checklist,"full_name_without_family")
+  #   if(!use_name_matching && key(kew_checklist)!="acc_full_name_without_family") setkey(kew_checklist,"acc_full_name_without_family")
+  # }
+  
+  if(backbone=='wcvp'){
+    kew_checklist <- kew_wcvp
+    kew_lookup_table <- kew_wcvp_distrib
+    if(use_name_matching && data.table::key(kew_checklist)!="taxon_name") data.table::setkey(kew_checklist,"taxon_name")
+    if(!use_name_matching && data.table::key(kew_checklist)!="taxon_name") data.table::setkey(kew_checklist,"taxon_name")
   }else{
-    if(use_name_matching && key(kew_checklist)!="full_name_without_family") setkey(kew_checklist,"full_name_without_family")
-    if(!use_name_matching && key(kew_checklist)!="acc_full_name_without_family") setkey(kew_checklist,"acc_full_name_without_family")
+    kew_checklist <- kew_powo
+    kew_lookup_table <- kew_powo_distrib
+    if(use_name_matching && data.table::key(kew_checklist)!="full_name_without_family") data.table::setkey(kew_checklist,"full_name_without_family")
+    if(!use_name_matching && data.table::key(kew_checklist)!="acc_full_name_without_family") data.table::setkey(kew_checklist,"acc_full_name_without_family")
   }
-
+  
   distrib <- try(kew_checklist[species_name][['hasdistribution']])
   if(inherits(distrib,"error")){
     if(verbose)

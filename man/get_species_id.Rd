@@ -4,8 +4,7 @@
 \alias{get_species_id}
 \title{Functions to get the species IPNI ID from the Kew checklist.}
 \usage{
-get_species_id(species_name, status = "native", level = 2,
-  exclude = NULL)
+get_species_id(species_name, status = "native", level = 2, exclude = NULL)
 }
 \arguments{
 \item{species_name}{A two character string (Genus species) specifying the name of the species to search for.}

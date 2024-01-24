@@ -1,4 +1,4 @@
-#' Functions developed by Ian (2019) to filter/select species/occurrences based on a system of geographical units
+#' Functions developed by Ian Ondo (2019) to filter/select species/occurrences based on a system of geographical units
 #' developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.
 #'
 #' Tests whether or not the species occurrence locations are distributed over its introduced range.
@@ -15,7 +15,7 @@
 #' @param by_id A logical. Should the criteria be applied to each geographical units ? Default is FALSE. Not implemented yet.
 #' @param recursive A logical. Should the criteria be also applied at the subsequent lower units level ? Default is FALSE.
 #' @param cleanOcc A logical. Should the dataset of cleaned occurrence records be returned also ? Default is FALSE.
-#' @param sp A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}
+#' @param sf A logical. Should the results be returned as a sf ? Default is TRUE. Ignored if \code{cleanOcc=FALSE}
 #' @param ... Additional parameters to be passed to \code{TDWGinfo()}
 #' @return By default the function returns a logical:
 #'         \code{TRUE} if the distribution of species occurrences match the \code{status} range required, given the criteria;
@@ -32,10 +32,11 @@ hasIntroducedDistrib <- function(point_data,
                                  range_filling = NULL,
                                  grid_resol = 10000,
                                  initial_level = 2,
+                                 backbone='wcvp',
                                  by_id = FALSE,
                                  recursive = FALSE,
                                  cleanOcc = FALSE,
-                                 sp = FALSE,
+                                 sf = FALSE,
                                  verbose = TRUE,...){
 
   # if(!hasDistrib(species_name, verbose=FALSE)){
@@ -45,12 +46,12 @@ hasIntroducedDistrib <- function(point_data,
   # }
 
   call.fun 	<- match.call(expand.dots=TRUE)
-  tmp.args    <- c("",'point_data','species_name','species_id','grid_resol','initial_level','by_id','recursive','sp','verbose','use_name_matching','full_data')
+  tmp.args    <- c("",'point_data','species_name','species_id','grid_resol','initial_level','backbone','by_id','recursive','sf','verbose','use_name_matching','full_data')
   call.tmp    <- call.fun[match(tmp.args, names(call.fun),nomatch=0)]
   call.tmp$status <- 'introduced'
   if(!is.null(range_filling))
     call.tmp$which_skip <- NULL
-  call.tmp$sp		<- FALSE
+  call.tmp$sf		<- FALSE
   call.tmp$verbose <- FALSE
   call.tmp[[1]] 	<- as.name("TDWGinfo")
   tdwg_info		<- eval(call.tmp, parent.frame())
@@ -68,6 +69,15 @@ hasIntroducedDistrib <- function(point_data,
     if(!inherits(range_filling,"numeric")||(range_filling<0 | range_filling>100))
       stop("Argument 'range_filling' must be a number between 0 and 100.")
   }
+  # test if distribution data have been retrieve
+  if(recursive)
+    has_info = inherits(tdwg_info[[4]],"data.frame")
+  else  
+    has_info = inherits(tdwg_info[[3]],"data.frame")
+  
+  if(!has_info)
+    return(NA)
+  
   # test if the fraction of occurrence condition is satisfied
   if(recursive)
     test_point_fraction = any(tdwg_info[[4]][,'frac_occ']>=point_fraction)
@@ -96,15 +106,15 @@ hasIntroducedDistrib <- function(point_data,
   }
 
   if(cleanOcc && !is.null(tdwg_info$cleaned_point_data)){
-    if(sp){
+    if(sf){
 
-      id_x_lon 	<- grep(pattern = "[Ll][Oo][Nn]",x = names(tdwg_info$cleaned_point_data))[1]
-      id_y_lat 	<- grep(pattern = "[Ll][Aa][Tt]",x = names(tdwg_info$cleaned_point_data))[1]
+      id_x_lon 	<- grep(pattern = "[Ll][Oo][Nn]|^[Xx]$",x = names(tdwg_info$cleaned_point_data))[1]
+      id_y_lat 	<- grep(pattern = "[Ll][Aa][Tt]|^[Yy]$",x = names(tdwg_info$cleaned_point_data))[1]
       coordHeaders <- c(id_x_lon, id_y_lat)
 
       return(
-        SpatialPointsDataFrame(	coords=tdwg_info$cleaned_point_data[,coordHeaders],
-                                data=data.frame(species=if(recursive) rep(species_name, times= nrow(tdwg_info[[4]])) else species_name,
+        sf::st_as_sf(	coords=tdwg_info$cleaned_point_data[,coordHeaders],
+                                x=data.frame(species=if(recursive) rep(species_name, times= nrow(tdwg_info[[4]])) else species_name,
                                                 status=if(recursive) rep(status, times=nrow(tdwg_info[[4]])) else status,
                                                 hasIntroducedDistrib=if(recursive) rep(test_introduced,times=nrow(tdwg_info[[4]])) else test_introduced,
                                                 levels=if(recursive) rep(initial_level, times=nrow(tdwg_info[[4]])) else min(initial_level+1, 4),
@@ -112,7 +122,7 @@ hasIntroducedDistrib <- function(point_data,
                                                 unit_fraction=if(recursive) tdwg_info[[4]][,'frac_units'] else tdwg_info[[3]][,'frac_units'],
                                                 range_filling=if(recursive) tdwg_info[[4]][,'perc_cover'] else tdwg_info[[3]][,'perc_cover']
                                 ),
-                                proj4string=tdwg_info$crs
+                                crs=tdwg_info$crs
         )
       )
     }

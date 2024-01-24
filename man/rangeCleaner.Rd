@@ -4,11 +4,25 @@
 \alias{rangeCleaner}
 \title{Functions to filter species occurrences or select species based on a system of geographical units developped by The International Working Group on Taxonomic Databases for Plant Sciences (TDWG) at approximately "country" level and upwards.}
 \usage{
-rangeCleaner(point_data, what = "species", working_dir = NULL,
-  species_name = NULL, species_id = NULL, status = "both",
-  initial_level = 2, force.output = FALSE, sp = FALSE,
-  fileAsNames = FALSE, do.parallel = FALSE, ncores = NULL,
-  save.outputs = TRUE, verbose = TRUE, ...)
+rangeCleaner(
+  point_data,
+  what = "species",
+  working_dir = NULL,
+  species_name = NULL,
+  species_id = NULL,
+  col_species = NULL,
+  status = "both",
+  initial_level = 2,
+  backbone = "wcvp",
+  force.output = FALSE,
+  sf = FALSE,
+  fileAsNames = FALSE,
+  do.parallel = FALSE,
+  ncores = NULL,
+  save.outputs = TRUE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{point_data}{A two-column data.frame of occurrence records coordinates, a path to a directory or a file containing the occurrence records coordinates of the species.}
@@ -27,7 +41,7 @@ rangeCleaner(point_data, what = "species", working_dir = NULL,
 
 \item{force.output}{A logical. Should the initial point dataset be returned in case where all points have been removed by the cleaning ? Default is FALSE.}
 
-\item{sp}{A logical. Should the results be returned as a SpatialPointsDataFrame ? Default is FALSE. Ignored if \code{cleanOcc=FALSE}}
+\item{sf}{A logical. Should the results be returned as a sf object ? Default is FALSE. Ignored if \code{cleanOcc=FALSE}}
 
 \item{fileAsNames}{A logical. Should species name be retrieved from file names ? Default is FALSE. Ignored if point_data is a path to a directory.}
 
