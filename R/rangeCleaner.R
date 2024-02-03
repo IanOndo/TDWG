@@ -49,7 +49,7 @@ rangeCleaner <- function(point_data,
                          backbone='wcvp',
                          force.output = FALSE,
                          sf = FALSE,
-                         fileAsNames = FALSE,
+                         fileAsNames = is.null(species_name),
                          do.parallel = FALSE,
                          ncores = NULL,
                          save.outputs = TRUE,
@@ -112,13 +112,19 @@ rangeCleaner <- function(point_data,
       occ_data 		<- data.table::fread(point_data, showProgress=FALSE)
       id_sp_name		<- grep(pattern = "^[Ss][Pp]|[Bb][Ii][Nn][Oo][Mm]",x = names(occ_data))[1]
       if(length(id_sp_name)==0L)
-        stop("Unable to find a species name for the data. Please specified a name for the species with 'species_name' or using file name (i.e. fileAsNames set to TRUE)")
+        stop("Unable to find a species name from the data. Please specified a name for the species with 'species_name' or using file name (i.e. fileAsNames set to TRUE)")
       sp.colname <- colnames(occ_data)[id_sp_name]
       setkeyv(occ_data, sp.colname)
       list.species 	<- c(as.character(unique(occ_data[[sp.colname]]))) # select species
+    }else if(!is.null(species_name) & !fileAsNames){
+      occ_data 		<- data.table::fread(point_data, showProgress=FALSE)
+      occ_data[,species:=species_name]
+      setkey(occ_data,"species")
+      list.species <- species_name
     }
-    else
+    else{
       list.species <- gsub("\\.csv","",basename(point_data))
+    }
   }
   else if(data_flag){
     id_sp_name	<- ifelse(!is.null(col_species) && (col_species > 0 & col_species <= ncol(point_data)), col_species, grep(pattern = "^[Ss][Pp]|[Bb][Ii][Nn][Oo][Mm]",x = names(point_data))[1])
@@ -234,7 +240,7 @@ rangeCleaner <- function(point_data,
 
     started.at <- Sys.time()
 
-      out <- foreach::foreach(k = list.species, .packages = c("TDWG","geosphere", "rgdal", "geojsonio","stringr", "raster", "parallel", "foreach","data.table"), .export=toExport, .errorhandling = 'pass') %dopar% {
+      out <- foreach::foreach(k = list.species, .packages = c("TDWG","stringr", "parallel", "foreach","data.table"), .export=toExport, .errorhandling = 'pass') %dopar% {
 
         # Get data for just that species
         if(file.exists(k)){
@@ -255,6 +261,7 @@ rangeCleaner <- function(point_data,
             tryCatch(point_data[J(k)],error = function(err) return(NULL))
           })
         }
+
         # if an error occurred during the reading returns an NULL
         if (is.null(species.data) || ncol(species.data) < 2){
           if(verbose) warning(paste0("Cannot read file from species ",k))

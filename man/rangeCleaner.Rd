@@ -16,7 +16,7 @@ rangeCleaner(
   backbone = "wcvp",
   force.output = FALSE,
   sf = FALSE,
-  fileAsNames = FALSE,
+  fileAsNames = is.null(species_name),
   do.parallel = FALSE,
   ncores = NULL,
   save.outputs = TRUE,

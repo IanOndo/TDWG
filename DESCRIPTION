@@ -10,12 +10,12 @@ Encoding: UTF-8
 LazyData: true
 ByteCompile: true
 Imports: 
-    raster,
-    geosphere,
-    doParallel,
+    terra,
     foreach
 RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10),
+    doParallel,
+    sf,
     data.table,
     stringr

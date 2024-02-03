@@ -12,7 +12,7 @@ coordinatesRangeCleaner(
   initial_level = 2,
   backbone = "wcvp",
   force.output = FALSE,
-  sf = FALSE,
+  sf = TRUE,
   verbose = TRUE,
   ...
 )

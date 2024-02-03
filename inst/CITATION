@@ -1,0 +1,8 @@
+bibentry(
+  bibtype  = "Manual",
+  title    = {{TDWG}: cleaning occurrence records using the World Geographical Scheme for Recording Plant Distributions (WGSRPD)},
+  author   = {Ondo I.},
+  year     = {2024},
+  note   = {},
+  url   = {https://github.com/IanOndo/TDWG}
+)

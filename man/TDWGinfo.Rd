@@ -18,8 +18,7 @@ TDWGinfo(
   which_skip = 3,
   recursive = FALSE,
   sf = TRUE,
-  proj_utm =
-    "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+  proj_utm = "+proj=eqearth",
   full_data = FALSE,
   force = FALSE,
   verbose = FALSE,

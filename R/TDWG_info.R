@@ -33,15 +33,15 @@ TDWGinfo <- function(point_data,
                      which_skip = 3,
                      recursive = FALSE,
                      sf = TRUE,
-                     proj_utm = "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+                     proj_utm = "+proj=eqearth",
                      full_data = FALSE,
                      force = FALSE,
                      verbose = FALSE,...){
 
   if(verbose){
-    cat('#=================\n')
-    cat('#=0 Check inputs\n')
-    cat('#=================\n')
+    message('#=================')
+    message('#=0 Check inputs')
+    message('#=================')
   }
   if(missing(point_data))
     stop("Argument 'point_data' is missing")
@@ -60,7 +60,7 @@ TDWGinfo <- function(point_data,
   tmp.args    <- c("",'point_data','species_name', 'status','use_name_matching','grid_resol','initial_level','backbone','by_id','which_skip','recursive','sf','proj_utm','full_data')
   call.tmp    <- call.fun[match(tmp.args, names(call.fun),nomatch=0)]
 
-  tdwg_info_fn <- file.path(dirname(raster::rasterTmpFile()),gsub(" ","_",paste0("TDWGinfo_",species_name,".rds")))
+  tdwg_info_fn <- file.path(tempdir(),gsub(" ","_",paste0("TDWGinfo_",species_name,".rds")))
   if(file.exists(tdwg_info_fn) & !force){
     tdwg_info  	<- readRDS(tdwg_info_fn)
     if(identical(call.tmp,tdwg_info[[1]]))
@@ -68,9 +68,9 @@ TDWGinfo <- function(point_data,
   }
 
   if(verbose){
-    cat('#=============================\n')
-    cat('#= 1. Get species identifiers\n')
-    cat('#=============================\n')
+    message('#=============================')
+    message('#= 1. Get species identifiers')
+    message('#=============================')
   }
   #------------------------------------------
   #= 1.a get database id from the checklist
@@ -110,10 +110,10 @@ TDWGinfo <- function(point_data,
   #----------------------------------------------
   #= 1.a get geographic code
   #----------------------------------------------
-  if(verbose) cat("> 1.a getting geographic code ...")
+  if(verbose) message("> 1.a getting geographic code ...")
   # set geographic level and get polygons
   if(!inherits(initial_level,"numeric") || (initial_level<1 | initial_level>4)){
-    cat('failed\n')
+    message('failed')
     stop("Argument 'initial level' must be an integer between 1 and 4")
   }
   dots.args = list(...)
@@ -187,7 +187,7 @@ TDWGinfo <- function(point_data,
 
   if(is.null(geographic_code)){
     if(verbose){
-      cat('failed\n')
+      message('failed')
       warning(paste0("Unable to find geo-data for species '",species_name,"' with the status '",status,"'"))
     }
     return(list(species=species_name, status=status, levels=c(initial_level, if(do.recursive) initial_level+1), point_fraction=NULL, unit_fraction=NULL, range_filling=NULL, crs=NULL, cleaned_point_data = NULL))
@@ -196,13 +196,13 @@ TDWGinfo <- function(point_data,
   if(do.recursive){
     sub_geographic_code	= unique(sub_geographic_code)
   }
-  if(verbose) cat("done\n\n")
+  if(verbose) message("done\n")
   if(verbose){
-    cat('#=========================================================\n')
-    cat('#= 2. Get species polygons\n')
-    cat('#=========================================================\n')
+    message('#=========================================================')
+    message('#= 2. Get species polygons\n')
+    message('#=========================================================')
   }
-  if(verbose) cat("> 2. getting species polygons ...")
+  if(verbose) message("> 2. getting species polygons ...")
   #tdwg_polygons <- eval(parse(text=sprintf("subset(geographic_polygon, %s %%in%% geographic_code)",level_code)))
   tdwg_polygons <- geographic_polygon %>%
     dplyr::filter(!!as.name(level_code) %in% geographic_code)
@@ -213,18 +213,18 @@ TDWGinfo <- function(point_data,
   }
     #tdwg_sub_level_polygons <- eval(parse(text=sprintf("subset(sub_geographic_polygon, %s %%in%% sub_geographic_code)",sub_level_code)))
   
-  if(verbose) cat("done\n\n")
+  if(verbose) message("done\n")
   if(!is.null(which_skip)){
     if(!all(inherits(which_skip,'numeric')) & !all(which_skip %in% c(2,3)) & length(which_skip)<=2)
       stop("Argument 'which.skip' must be an integer value or vector with value(s) 1, 2 or 3.")
   }
   if(verbose){
     if(!is.null(which_skip) & all(c(1,2,3) %in% which_skip) ){
-      cat("> skipping computation of points distribution parameters...\n")
+      message("> skipping computation of points distribution parameters...\n")
     }else{
-      cat('#====================================================================\n')
-      cat('#= 3. Compute points distribution parameters\n')
-      cat('#====================================================================\n')
+      message('#====================================================================')
+      message('#= 3. Compute points distribution parameters')
+      message('#====================================================================')
     }
   }
 
@@ -265,14 +265,14 @@ TDWGinfo <- function(point_data,
   do.frac_occ = !(!is.null(which_skip) & 1 %in% which_skip)
   if(verbose){
     if(!do.frac_occ)
-      cat("> skipping computation of the fraction of occurrences lying within TDWG units...\n")
+      message("> skipping computation of the fraction of occurrences lying within TDWG units...\n")
   }
   if(do.frac_occ){
-    if(verbose) cat("> computing the fraction of occurrences lying within TDWG units...\n")
+    if(verbose) message("> computing the fraction of occurrences lying within TDWG units...\n")
 
     point_fraction <- sum(is_in_range)/nb_pts_total
     if(point_fraction==0){
-      if(verbose) cat("No points has been found within the known range. Exiting...\n")
+      if(verbose) message("No points has been found within the known range. Exiting...\n")
       out = list(species=species_name,
                  status=status,
                  eval(parse(text=sprintf("level%g=initial_level_data",initial_level))),
@@ -318,7 +318,7 @@ TDWGinfo <- function(point_data,
         sub_level_data[match(k,tdwg_sub_level_polygons %>% dplyr::pull(as.name(sub_level_code))),c(1,4)] <- c(nb_pts_in_sub_units/nb_pts_total, k)
       }
     }
-    if(verbose) cat("done\n")
+    if(verbose) message("done")
   }
 
   #-----------------------------------
@@ -327,10 +327,10 @@ TDWGinfo <- function(point_data,
   do.frac_units = !(!is.null(which_skip) & 2 %in% which_skip)
   if(verbose){
     if(!do.frac_units)
-      cat("> skipping computation of the proportion of the tdwg units sampled ...\n")
+      message("> skipping computation of the proportion of the tdwg units sampled ...\n")
   }
   if(do.frac_units){
-    if(verbose) cat("> computing the proportion of TDWG units in which the species is found...")
+    if(verbose) message("> computing the proportion of TDWG units in which the species is found...")
 
     is_in_units <- vector(length=nb_tdwg_units)
     for(k in tdwg_polygons %>% dplyr::pull(as.name(level_code)))
@@ -350,7 +350,7 @@ TDWGinfo <- function(point_data,
       sub_level_data[,2] <- sum(is_in_sub_units)/nb_tdwg_sub_units
     }
 
-    if(verbose) cat("done\n")
+    if(verbose) message("done")
   }
 
   #-----------------------------------
@@ -359,35 +359,42 @@ TDWGinfo <- function(point_data,
   do.perc_cover = !(!is.null(which_skip) & 3 %in% which_skip)
   if(verbose){
     if(!do.perc_cover)
-      cat("> skipping computation of the percent coverage of the tdwg units ...\n")
+      message("> skipping computation of the percent coverage of the tdwg units ...\n")
   }
   if(do.perc_cover){
-    if(verbose) cat("> computing the percent coverage of the tdwg units by occurrence points...")
+    if(verbose) message("> computing the percent coverage of the tdwg units by occurrence points...")
 
     # keep point inside the tdwg
     sp.pts_in_range	<- sp.pts[is_in_range,] # should have >0 pts since the fraction of point inside the tdwg unit >0
     # transform in utm
     sp.pts_utm_in_range <- sf::st_transform(sp.pts_in_range, sf::st_crs(proj_utm))
     # create raster template
-    r_init	<- if(!exists('r_init')) { r_init <<- init(raster());r_init} else r_init
-    r_temp_fn 		<- file.path(dirname(rasterTmpFile()),paste0(grid_resol,"_",gsub(" ","_",proj_utm),".rds"))
+    r_init	<- if(!exists('r_init')) { r_init <<- terra::init(terra::rast(),fun=0);r_init} else r_init
+    r_temp_fn 		<- file.path(tempdir(),paste0(grid_resol,"_",gsub(" ","_",proj_utm),".rds"))
     if(file.exists(r_temp_fn))
       r_temp <- readRDS(r_temp_fn)
     else{
-      r_temp  <- projectRaster(r_init, res=grid_resol, crs=sf::st_crs(proj_utm)$proj4string)
+      r_temp  <- terra::project(r_init, y=proj_utm, res=grid_resol)
       saveRDS(r_temp,file=r_temp_fn )
     }
     # compute the percent coverage of the tdwg area occupied by occurrence points
-    tdwg_utm_polygons_fn <- file.path(dirname(rasterTmpFile()),paste0('tdwg_utm_polygons_',grid_resol,"_",gsub(" ","_",proj_utm),".rds"))
+    tdwg_utm_polygons_fn <- file.path(tempdir(),paste0('tdwg_utm_polygons_',grid_resol,"_",gsub(" ","_",proj_utm),".rds"))
     if(file.exists(tdwg_utm_polygons_fn))
       tdwg_utm_polygons <- readRDS(tdwg_utm_polygons_fn)
     else{
       tdwg_utm_polygons	<- sf::st_transform(tdwg_polygons, sf::st_crs(proj_utm))
       saveRDS(tdwg_utm_polygons,file=tdwg_utm_polygons_fn )
     }
-    cell_area			<- (xres(r_temp)*yres(r_temp))
-    tdwg_units_area		<- if(nb_tdwg_units>1) lengths(raster::cellFromPolygon(r_temp,tdwg_utm_polygons))*cell_area else length(raster::cellFromPolygon(r_temp,tdwg_utm_polygons))*cell_area
-    sp.pts_area_cell 	<- rep(cell_area, times=length(unique(raster::extract(r_temp, sp.pts_utm_in_range, cellnumber=TRUE)[,'cells'])))
+    # TODO: use terra::expanse() in the future
+    identity <- function(x) return(x)
+    one <- function(x) return(1)
+    g <- terra::rasterize(terra::vect(tdwg_utm_polygons),r_temp,field=level_code)
+    tdwg_units_area <- terra::expanse(r_temp, unit="km", byValue=TRUE, zones=g)[,"area"]
+    gg <- terra::rasterize(terra::vect(sp.pts_utm_in_range),r_temp, fun=one)
+    sp.pts_area_cell 	<- terra::expanse(r_temp, unit="km", byValue=TRUE, zones=gg)[,"area"]
+    #cell_area			<- (terra::xres(r_temp)*terra::yres(r_temp))
+    #tdwg_units_area		<- if(nb_tdwg_units>1) lengths(terra::extract(r_temp,terra::vect(tdwg_utm_polygons), cells=TRUE)[,'cells'])*cell_area else length(terra::extract(r_temp,terra::vect(tdwg_utm_polygons),cells=TRUE)[,'cells'])*cell_area
+    #sp.pts_area_cell 	<- rep(cell_area, times=length(unique(terra::extract(r_temp, terra::vect(sp.pts_utm_in_range), cells=TRUE)[,'cells'])))
 
     if(!by_id){
       initial_level_data[1,3]	<- (sum(sp.pts_area_cell,na.rm=TRUE)/sum(tdwg_units_area))*100
@@ -414,7 +421,8 @@ TDWGinfo <- function(point_data,
         tdwg_sub_level_utm_polygons	<- sf::st_transform(tdwg_sub_level_polygons, sf::st_crs(proj_utm))
         saveRDS(tdwg_sub_level_utm_polygons,file=tdwg_sub_level_utm_polygons_fn)
       }
-      tdwg_sub_units_area <- if(nb_tdwg_sub_units > 1) lengths(raster::cellFromPolygon(r_temp,tdwg_sub_level_utm_polygons))*cell_area else length(raster::cellFromPolygon(r_temp,tdwg_sub_level_utm_polygons))*cell_area #raster::area(tdwg_sub_level_utm_polygons)/1e06
+      g <- terra::rasterize(terra::vect(tdwg_sub_level_utm_polygons),r_temp,field=level_code)
+      tdwg_sub_units_area <- terra::expanse(r_temp, unit="km", byValue=TRUE, zones=g)[,"area"]
       sub_range_filling 	<- vector(length=nb_tdwg_sub_units)
       for(k in tdwg_sub_level_utm_polygons %>% dplyr::pull(as.name(sub_level_code))){
         is_in_id_sub_units   <- sf::st_intersects(sp.pts_utm_in_range, 
@@ -424,10 +432,10 @@ TDWGinfo <- function(point_data,
       }
     }
 
-    if(verbose) cat("done\n\n")
+    if(verbose) message("done\n")
   }
 
-  out =list(species=species_name, status=status, initial_level_data, crs=sf::st_crs(sp.pts)$proj4string, cleaned_point_data=if(sf) sp.pts[is_in_range,] else if(full_data) point_data[is_in_range,] else sf::st_coordinates(sp.pts[is_in_range,]))
+  out =list(species=species_name, status=status, initial_level_data, crs=sf::st_crs(sp.pts)$proj4string, cleaned_point_data=if(sf){if(full_data) sf::st_sf(data=point_data[is_in_range,], geom=sf::st_geometry(sp.pts[is_in_range,])) else sp.pts[is_in_range,]} else if(full_data) point_data[is_in_range,] else sf::st_coordinates(sp.pts[is_in_range,]))
   names(out)[3] <- paste0("level",initial_level)
 
   if(do.recursive){
